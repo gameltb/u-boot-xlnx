@@ -1,0 +1,149 @@
+// SPDX-License-Identifier: GPL-2.0+
+/*
+ *  Copyright (C) 2011 - 2015 Xilinx
+ *  Copyright (C) 2012 National Instruments Corp.
+ */
+/dts-v1/;
+#include "zynq-7000.dtsi"
+
+/ {
+	model = "EBAZ4205 board";
+	compatible = "xlnx,zynq-EBAZ4205", "xlnx,zynq-7000";
+
+	aliases {
+		ethernet0 = &gem0;
+		serial0 = &uart1;
+		mmc0 = &sdhci0;
+	};
+
+	memory@0 {
+		device_type = "memory";
+		reg = <0x0 0x10000000>;
+	};
+
+	chosen {
+		bootargs = "";
+		stdout-path = "serial0:115200n8";
+	};
+
+	gpio-keys {
+		compatible = "gpio-keys";
+		autorepeat;
+
+		s2 {
+			label = "s2";
+			gpios = <&gpio0 20 1>;
+			linux,code = <102>;
+			wakeup-source;
+			autorepeat;
+		};
+
+		s3 {
+			label = "s3";
+			gpios = <&gpio0 32 1>;
+			linux,code = <116>;
+			wakeup-source;
+			autorepeat;
+		};
+	};
+};
+
+&clkc {
+	ps-clk-frequency = <33333333>;
+};
+
+&gem0 {
+	status = "okay";
+	phy-mode = "rgmii-id";
+	phy-handle = <&ethernet_phy>;
+
+	ethernet_phy: ethernet-phy@0 {
+		reg = <0>;
+		device_type = "ethernet-phy";
+	};
+};
+
+&smcc {
+    status = "okay";
+};
+
+&nand0 {
+    status = "okay";
+    pinctrl-names = "default";
+    pinctrl-0 = <&pinctrl_nand0_default>;
+    partition@0 {
+        label = "nand-fsbl-uboot";
+        reg = <0x0 0x300000>;
+    };
+    partition@1 {
+        label = "nand-linux";
+        reg = <0x300000 0x500000>;
+    };
+    partition@2 {
+        label = "nand-device-tree";
+        reg = <0x800000 0x20000>;
+    };
+    partition@3 {
+        label = "nand-rootfs";
+        reg = <0x820000 0xa00000>;
+    };
+    partition@4 {
+        label = "nand-jffs2";
+        reg = <0x1220000 0x1000000>;
+    };
+    partition@5 {
+        label = "nand-bitstream";
+        reg = <0x2220000 0x800000>;
+    };
+    partition@6 {
+        label = "nand-allrootfs";
+        reg = <0x2a20000 0x4000000>;
+    };
+    partition@7 {
+        label = "nand-release";
+        reg = <0x6a20000 0x13e0000>;
+    };
+    partition@8 {
+        label = "nand-reserve";
+        reg = <0x7e00000 0x200000>;
+    };
+};
+
+&pinctrl0 {
+    pinctrl_nand0_default: nand0-default {
+        mux {
+            groups = "smc0_nand8_grp";
+            function = "smc0_nand";
+        };
+
+        conf {
+            groups = "smc0_nand8_grp";
+            bias-pull-up;
+        };
+    };
+
+	pinctrl_uart1_default: uart1-default {
+		mux {
+			groups = "uart1_4_grp";
+			function = "uart1";
+		};
+
+		conf {
+			groups = "uart1_4_grp";
+			slew-rate = <0>;
+			io-standard = <3>;
+		};
+	};
+};
+
+&sdhci0 {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+};
+
+&uart1 {
+	u-boot,dm-pre-reloc;
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart1_default>;
+};
